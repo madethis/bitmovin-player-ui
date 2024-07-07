@@ -2,7 +2,7 @@ export const version: string = '{{VERSION}}';
 // Management
 export { UIManager, UIInstanceManager, UIVariant } from './uimanager';
 // Factories
-export { UIFactory } from './uifactory';
+export { UIFactory } from './madethis';
 export { DemoFactory } from './demofactory';
 // Utils
 export { ArrayUtils } from './arrayutils';
