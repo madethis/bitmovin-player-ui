@@ -104,7 +104,10 @@ export function getElementInDirection(
 ): HTMLElement | undefined {
   if (!activeElement) return undefined;
 
-  const cutoffAngle = 45;
+  // had to override, based on the made this ui layout
+  // const cutoffAngle = 45;
+  const cutoffAngle = 85;
+  
   const activeElemVector = getElementVector(activeElement);
 
   return elements

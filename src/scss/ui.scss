@@ -1,0 +1,221 @@
+$color-highlight: #ffffff;
+$color-focus: #ff0000;
+
+@import "skin-modern/skin";
+
+.#{$prefix}-ui-uicontainer {
+  font-family: var(
+    --font-body,
+    Inter,
+    -apple-system,
+    system-ui,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif
+  );
+
+  .#{$prefix}-seekbar {
+    .#{$prefix}-seekbar-bufferlevel {
+      background-color: transparentize($color-highlight, 0.9);
+    }
+
+    .#{$prefix}-seekbar-playbackposition-marker {
+      background-color: $color-highlight;
+    }
+  }
+
+  .#{$prefix}-ui-listbox-button {
+    &.#{$prefix}-selected {
+      background-color: transparentize($color-highlight, 0.9);
+    }
+
+    &:hover {
+      background-color: transparentize($color-highlight, 0.8);
+    }
+  }
+
+  .#{$prefix}-ui-watermark {
+    display: none;
+  }
+
+  .#{$prefix}-ui-subtitle-overlay {
+    bottom: 1em;
+  }
+
+  .#{$prefix}-ui-controlbar {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-web,
+.#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-mobile {
+  .#{$prefix}-ui-titlebar {
+    padding-left: 2.75em;
+
+    .#{$prefix}-label-metadata-title {
+      font-size: 1.2em;
+      line-height: 1.5em;
+    }
+  }
+
+  .#{$prefix}-ui-backbutton {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZWZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jaGV2cm9uLWxlZnQiPjxwYXRoIGQ9Im0xNSAxOC02LTYgNi02Ii8+PC9zdmc+");
+    position: absolute;
+    left: 0.75em;
+    font-size: 1.2em;
+    padding: 0;
+  }
+
+  .#{$prefix}-ui-controlbar {
+    padding: 0;
+
+    .#{$prefix}-controlbar-primary {
+      left: 0;
+      right: 0;
+      top: calc(50% - 3em);
+      position: absolute;
+      height: 6em;
+      padding: 0 1em;
+
+      .#{$prefix}-container-wrapper {
+        height: 100%;
+        display: flex;
+        gap: 0.5em;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+      }
+
+      .#{$prefix}-ui-playbacktogglebutton {
+        font-size: 1.5em;
+      }
+    }
+
+    .#{$prefix}-controlbar-secondary {
+      left: 0;
+      right: 0;
+      bottom: 0em;
+      padding: 1em;
+      position: absolute;
+    }
+  }
+
+  .#{$prefix}-controlbar-bottom {
+    .#{$prefix}-container-wrapper {
+      gap: 0.25em;
+    }
+  }
+}
+
+.#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-tv {
+  font-size: 4vh;
+
+  .#{$prefix}-ui-titlebar {
+    padding: 1em;
+
+    .#{$prefix}-container-wrapper {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+
+    .#{$prefix}-label-metadata-title {
+      font-size: 1.4em;
+      line-height: 1.3;
+    }
+
+    .#{$prefix}-label-metadata-description {
+      font-size: 1em;
+      line-height: 1.2;
+    }
+  }
+
+  .#{$prefix}-ui-controlbar {
+    padding: 0;
+    font-size: 1em;
+
+    .#{$prefix}-controlbar-primary {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      position: absolute;
+      height: 4em;
+
+      .#{$prefix}-ui-controls-playback {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 1em;
+
+        > .#{$prefix}-container-wrapper {
+          display: flex;
+          height: 100%;
+          gap: 1em;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .#{$prefix}-ui-playbacktogglebutton {
+          font-size: 1.5em;
+        }
+
+        .#{$prefix}-ui-quickseekbutton {
+          font-size: 1em;
+        }
+      }
+
+      .#{$prefix}-ui-controls-settings {
+        position: absolute;
+        right: 1em;
+        top: 0;
+        bottom: 1em;
+
+        > .#{$prefix}-container-wrapper {
+          display: flex;
+          height: 100%;
+          gap: 0.5em;
+          justify-content: flex-end;
+          align-items: center;
+        }
+
+        .#{$prefix}-ui-subtitlesettingstogglebutton,
+        .#{$prefix}-ui-audiotracksettingstogglebutton {
+          font-size: 1em;
+        }
+      }
+    }
+
+    .#{$prefix}-controlbar-secondary {
+      left: 0;
+      right: 0;
+      bottom: 4em;
+      position: absolute;
+      padding: 1em 1em 0.5em;
+    }
+  }
+
+  .#{$prefix}-controlbar-time-labels .#{$prefix}-container-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.2em;
+
+    .#{$prefix}-ui-playbacktimelabel {
+      font-size: 0.8em;
+    }
+  }
+
+  .#{$prefix}-controlbar-lists .#{$prefix}-ui-settings-panel {
+    bottom: 3.5em;
+    right: 0.5em;
+  }
+}

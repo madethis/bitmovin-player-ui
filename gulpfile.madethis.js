@@ -38,24 +38,19 @@ const argv = require('yargs').argv;
 // Output naming can be set via CLI parameters, e.g. --outputnames.globalNamespace=foo
 const outputnames = {
   globalNamespace: argv.outputnames && argv.outputnames.globalNamespace || 'bitmovin.playerui',
-  filename: argv.outputnames && argv.outputnames.filename || 'bitmovinplayer-ui',
   cssPrefix: argv.outputnames && argv.outputnames.cssPrefix || 'bmpui',
 };
 
 var paths = {
   source: {
-    html: ['./src/html/*.html'],
-    tsmain: ['./src/ts/main.ts'],
     ts: ['./src/ts/**/*.ts'],
-    sass: ['./src/scss/**/*.scss'],
-    json: ['./src/ts/**/*.json']
+    html: ['./src/html/madethis/*.html'],
+    sass: ['./src/scss/ui.scss'],
   },
   target: {
     html: './dist',
-    js: './dist/js',
-    jsframework: './dist/js/framework',
-    jsmain: `${outputnames.filename}.js`,
-    css: './dist/css'
+    js: './dist',
+    css: './dist'
   }
 };
 
@@ -67,7 +62,16 @@ var replacements = [
 var browserifyInstance = browserify({
   basedir: '.',
   debug: true,
-  entries: paths.source.tsmain,
+  entries: ['./src/ts/madethis/main.ts'],
+  cache: {},
+  packageCache: {},
+  standalone: outputnames.globalNamespace,
+}).plugin(tsify);
+
+var browserifyInstanceTV = browserify({
+  basedir: '.',
+  debug: true,
+  entries: ['./src/ts/madethis/main.tv.ts'],
   cache: {},
   packageCache: {},
   standalone: outputnames.globalNamespace,
@@ -84,11 +88,6 @@ function replaceAll() {
 // Deletes the target directory containing all generated files
 gulp.task('clean', function() {
   return del([paths.target.html]);
-});
-
-// Copies the JSON files to dist path
-gulp.task('copy-json', function() {
-  return gulp.src(paths.source.json).pipe(gulp.dest(paths.target.jsframework));
 });
 
 // TypeScript linting
@@ -140,7 +139,35 @@ gulp.task('browserify', function() {
 
   // Compile output JS file
   var stream = browserifyBundle
-  .pipe(source(paths.target.jsmain))
+  .pipe(source('ui.js'))
+  .pipe(replaceAll())
+  .pipe(buffer()) // required for production/sourcemaps
+  .pipe(gulp.dest(paths.target.js));
+
+  if (production) {
+    // Minify JS
+    stream.pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(uglify())
+    .pipe(rename({extname: '.min.js'}))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(paths.target.js));
+  }
+
+  return stream.pipe(browserSync.reload({stream: true}));
+});
+
+gulp.task('browserify-tv', function() {
+  var browserifyBundle = browserifyInstanceTV.bundle();
+
+  if (catchBrowserifyErrors) {
+    // Normally an error breaks a running task. For permanent tasks like watch/serve, we want the task to
+    // stay alive and ignore errors, so we catch them here and print them to the console.
+    browserifyBundle.on('error', console.error.bind(console));
+  }
+
+  // Compile output JS file
+  var stream = browserifyBundle
+  .pipe(source('ui.tv.js'))
   .pipe(replaceAll())
   .pipe(buffer()) // required for production/sourcemaps
   .pipe(gulp.dest(paths.target.js));
@@ -175,12 +202,6 @@ gulp.task('sass', function() {
     postcssSVG()
   ]))
   .pipe(cssBase64())
-  .pipe(rename(function(path) {
-    // The original filename is defined by the scss source file
-    if (path.basename === 'bitmovinplayer-ui') {
-      path.basename = outputnames.filename;
-    }
-  }))
   .pipe(sourcemaps.write())
   .pipe(gulp.dest(paths.target.css));
 
@@ -199,29 +220,14 @@ gulp.task('sass', function() {
 });
 
 // Builds the complete project from the sources into the target directory
-gulp.task('build', gulp.series('clean', gulp.parallel('html', 'browserify', 'sass')));
+gulp.task('build', gulp.series('clean', gulp.parallel('html', 'browserify', 'browserify-tv', 'sass')));
 
 gulp.task('build-prod', gulp.series(function(callback) {
   production = true;
   callback();
-}, 'lint', 'build'));
+}, 'build'));
 
 gulp.task('default', gulp.series('build'));
-
-// Watches files for changes and runs their build tasks
-gulp.task('watch', gulp.series('build', function() {
-  // Watch for changed html files
-  gulp.watch(paths.source.html).on('change', gulp.series('html'));
-
-  // Watch SASS files
-  gulp.watch(paths.source.sass).on('change', gulp.series('sass'));
-
-  // Watch JSON files
-  gulp.watch(paths.source.json).on('change', gulp.series('browserify'));
-
-  // Watch TypeScript files
-  gulp.watch(paths.source.ts).on('change', gulp.series('browserify'));
-}));
 
 // Serves the project in the browser and updates it automatically on changes
 gulp.task('serve', gulp.series('build', function() {
@@ -233,24 +239,11 @@ gulp.task('serve', gulp.series('build', function() {
     }
   });
 
+  catchBrowserifyErrors = true;
+
   gulp.watch(paths.source.sass).on('change', gulp.series('sass'));
   gulp.watch(paths.source.html).on('change', gulp.series('html', browserSync.reload));
-  gulp.watch(paths.source.json).on('change', gulp.series('browserify'));
-  catchBrowserifyErrors = true;
-  gulp.watch(paths.source.ts).on('change', gulp.series('browserify'));
-}));
-
-// Prepares the project for a npm release
-// After running this task, the project can be published to npm or installed from this folder.
-gulp.task('npm-prepare', gulp.series('build-prod', 'copy-json', function() {
-  // https://www.npmjs.com/package/gulp-typescript
-  var tsProject = ts.createProject('tsconfig.json');
-  var tsResult = gulp.src(paths.source.ts).pipe(tsProject());
-
-  return merge([
-    tsResult.dts.pipe(gulp.dest(paths.target.jsframework)),
-    tsResult.js.pipe(replaceAll()).pipe(gulp.dest(paths.target.jsframework))
-  ]);
+  gulp.watch(paths.source.ts).on('change', gulp.parallel('browserify', 'browserify-tv'));
 }));
 
 // Export the paths object to allow customization (e.g. js output filename) from other gulpfiles that import

@@ -1,40 +1,39 @@
-import { SubtitleOverlay } from './components/subtitleoverlay';
-import { SettingsPanelPage } from './components/settingspanelpage';
-import { SettingsPanelItem } from './components/settingspanelitem';
-import { SettingsPanel } from './components/settingspanel';
-import { ControlBar } from './components/controlbar';
-import { Container } from './components/container';
-import { PlaybackTimeLabel, PlaybackTimeLabelMode } from './components/playbacktimelabel';
-import { SeekBar } from './components/seekbar';
-import { SeekBarLabel } from './components/seekbarlabel';
-import { PlaybackToggleButton } from './components/playbacktogglebutton';
-import { VolumeToggleButton } from './components/volumetogglebutton';
-import { Spacer } from './components/spacer';
-import { PictureInPictureToggleButton } from './components/pictureinpicturetogglebutton';
-import { AirPlayToggleButton } from './components/airplaytogglebutton';
-import { CastToggleButton } from './components/casttogglebutton';
-import { SettingsToggleButton } from './components/settingstogglebutton';
-import { FullscreenToggleButton } from './components/fullscreentogglebutton';
-import { UIContainer } from './components/uicontainer';
-import { BufferingOverlay } from './components/bufferingoverlay';
-import { PlaybackToggleOverlay } from './components/playbacktoggleoverlay';
-import { CastStatusOverlay } from './components/caststatusoverlay';
-import { TitleBar } from './components/titlebar';
-import { ErrorMessageOverlay } from './components/errormessageoverlay';
-import { MetadataLabel, MetadataLabelContent } from './components/metadatalabel';
-import { PlayerUtils } from './playerutils';
-import { CastUIContainer } from './components/castuicontainer';
-import { UIInstanceManager, UIManager } from './uimanager';
-import { UIConfig } from './uiconfig';
+import { SubtitleOverlay } from '../components/subtitleoverlay';
+import { SettingsPanelPage } from '../components/settingspanelpage';
+import { SettingsPanelItem } from '../components/settingspanelitem';
+import { SettingsPanel } from '../components/settingspanel';
+import { ControlBar } from '../components/controlbar';
+import { Container } from '../components/container';
+import { PlaybackTimeLabel, PlaybackTimeLabelMode } from '../components/playbacktimelabel';
+import { SeekBar } from '../components/seekbar';
+import { SeekBarLabel } from '../components/seekbarlabel';
+import { PlaybackToggleButton } from '../components/playbacktogglebutton';
+import { VolumeToggleButton } from '../components/volumetogglebutton';
+import { Spacer } from '../components/spacer';
+import { PictureInPictureToggleButton } from '../components/pictureinpicturetogglebutton';
+import { AirPlayToggleButton } from '../components/airplaytogglebutton';
+import { CastToggleButton } from '../components/casttogglebutton';
+import { SettingsToggleButton } from '../components/settingstogglebutton';
+import { FullscreenToggleButton } from '../components/fullscreentogglebutton';
+import { UIContainer } from '../components/uicontainer';
+import { BufferingOverlay } from '../components/bufferingoverlay';
+import { PlaybackToggleOverlay } from '../components/playbacktoggleoverlay';
+import { CastStatusOverlay } from '../components/caststatusoverlay';
+import { TitleBar } from '../components/titlebar';
+import { ErrorMessageOverlay } from '../components/errormessageoverlay';
+import { MetadataLabel, MetadataLabelContent } from '../components/metadatalabel';
+import { PlayerUtils } from '../playerutils';
+import { CastUIContainer } from '../components/castuicontainer';
+import { UIInstanceManager } from '../uimanager';
 import { PlayerAPI } from 'bitmovin-player';
-import { i18n } from './localization/i18n';
-import { SubtitleListBox } from './components/subtitlelistbox';
-import { AudioTrackListBox } from './components/audiotracklistbox';
-import { SpatialNavigation } from './spatialnavigation/spatialnavigation';
-import { RootNavigationGroup } from './spatialnavigation/rootnavigationgroup';
-import { ListNavigationGroup, ListOrientation } from './spatialnavigation/ListNavigationGroup';
-import { QuickSeekButton } from './components/quickseekbutton';
-import { Button, ButtonConfig } from './components/button';
+import { i18n } from '../localization/i18n';
+import { SubtitleListBox } from '../components/subtitlelistbox';
+import { AudioTrackListBox } from '../components/audiotracklistbox';
+import { SpatialNavigation } from '../spatialnavigation/spatialnavigation';
+import { RootNavigationGroup } from '../spatialnavigation/rootnavigationgroup';
+import { ListNavigationGroup, ListOrientation } from '../spatialnavigation/ListNavigationGroup';
+import { QuickSeekButton } from '../components/quickseekbutton';
+import { Button, ButtonConfig } from '../components/button';
 
 declare const window: any;
 
@@ -68,27 +67,7 @@ class BackButton extends Button<ButtonConfig> {
   }
 }
 
-
-export namespace UIFactory {
-  
-  export function buildDefaultUI(player: PlayerAPI, config: UIConfig = {}): UIManager {
-    return new UIManager(player, defaultScreen(), config);
-  }
-
-  export function buildDefaultSmallScreenUI(player: PlayerAPI, config: UIConfig = {}): UIManager {
-    return buildDefaultUI(player, config);
-  }
-
-  export function buildDefaultCastReceiverUI(player: PlayerAPI, config: UIConfig = {}): UIManager {
-    return new UIManager(player, castScreen(), config);
-  }
-
-  export function buildDefaultTvUI(player: PlayerAPI, config: UIConfig = {}): UIManager {
-    return new UIManager(player, tvScreen(), config);
-  }
-}
-
-function defaultScreen() {
+export function defaultScreen() {
   let subtitleListBox = new SubtitleListBox();
   let subtitleSettingsPanel = new SettingsPanel({
     components: [
@@ -163,7 +142,7 @@ function defaultScreen() {
       }),
       audioTrackSettingsPanel,
       subtitleSettingsPanel,
-    ], cssClass: 'ui-controlbar with-special-controls',
+    ], cssClass: 'ui-controlbar',
   });
 
   return new UIContainer({
@@ -177,10 +156,11 @@ function defaultScreen() {
           new BackButton(),
           new MetadataLabel({ content: MetadataLabelContent.Title }),
           new MetadataLabel({ content: MetadataLabelContent.Description }),
-        ], cssClass: 'ui-titlebar with-backbutton',
+        ], cssClass: 'ui-titlebar',
       }),
       new ErrorMessageOverlay(),
     ],
+    cssClasses: ['ui-skin-web', 'ui-skin-mobile'],
     hideDelay: 2000,
     hidePlayerStateExceptions: [
       PlayerUtils.PlayerState.Prepared,
@@ -190,7 +170,7 @@ function defaultScreen() {
   });
 }
 
-function tvScreen() {
+export function tvScreen() {
     const subtitleListBox = new SubtitleListBox();
     const subtitleListPanel = new SettingsPanel({
       components: [
@@ -211,6 +191,8 @@ function tvScreen() {
       hidden: true,
     });
 
+    const quickSeekBackButton = new QuickSeekButton({ seekSeconds: -15 });
+    const quickSeekForwardButton = new QuickSeekButton({ seekSeconds: 15 });
     const playbackToggleButton = new PlaybackToggleButton();
     const seekBar = new SeekBar({ label: new SeekBarLabel() });
    
@@ -229,6 +211,21 @@ function tvScreen() {
       text: i18n.getLocalizer('settings.audio.track'),
     });
 
+    const playbackControls = new Container({
+      components: [
+        quickSeekBackButton,
+        playbackToggleButton,
+        quickSeekForwardButton,
+      ], cssClasses: ['ui-controls-playback']
+    })
+
+    const settingsControls = new Container({
+      components: [
+        subtitleToggleButton,
+        audioToggleButton,
+      ], cssClasses: ['ui-controls-settings']
+    })
+
     const uiContainer = new UIContainer({
       components: [
         new SubtitleOverlay(),
@@ -237,49 +234,43 @@ function tvScreen() {
           components: [
             new Container({
               components: [
-                playbackToggleButton,
-              ],
-              cssClasses: ['controlbar-primary'],
-            }),
-            new Container({
-              components: [
                 new Container({
                   components: [
                     new PlaybackTimeLabel({
                       timeLabelMode: PlaybackTimeLabelMode.CurrentTime,
                       hideInLivePlayback: true,
                     }),
-                    seekBar,
                     new PlaybackTimeLabel({
                       timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
                       cssClasses: ['text-right'],
-                    }),
+                    })
                   ],
-                  cssClasses: ['controlbar-top'],
+                  cssClasses: ['controlbar-time-labels']
                 }),
+                seekBar,
               ],
               cssClasses: ['controlbar-secondary'],
             }),
-          ], cssClass: 'ui-controlbar with-special-controls',
-        }),
-        new TitleBar({
-          components: [
             new Container({
               components: [
-                new MetadataLabel({ content: MetadataLabelContent.Title }),
-                subtitleToggleButton,
-                audioToggleButton,
+                playbackControls,
+                settingsControls,
               ],
-              cssClasses: ['ui-titlebar-top'],
+              cssClasses: ['controlbar-primary'],
             }),
             new Container({
               components: [
-                // new MetadataLabel({ content: MetadataLabelContent.Description }),
                 subtitleListPanel,
                 audioTrackListPanel,
               ],
-              cssClasses: ['ui-titlebar-bottom'],
+              cssClasses: ['controlbar-lists'],
             }),
+          ], cssClass: 'ui-controlbar',
+        }),
+        new TitleBar({
+          components: [
+            new MetadataLabel({ content: MetadataLabelContent.Title }),
+            new MetadataLabel({ content: MetadataLabelContent.Description }),
           ],
         }),
         new ErrorMessageOverlay(),
@@ -294,7 +285,15 @@ function tvScreen() {
     });
 
     const spatialNavigation = new SpatialNavigation(
-      new RootNavigationGroup(uiContainer, playbackToggleButton, seekBar, audioToggleButton, subtitleToggleButton),
+      new RootNavigationGroup(
+        uiContainer,
+        playbackToggleButton,
+        quickSeekBackButton,
+        quickSeekForwardButton,
+        audioToggleButton,
+        subtitleToggleButton,
+        seekBar,
+      ),
       new ListNavigationGroup(ListOrientation.Vertical, subtitleListPanel, subtitleListBox),
       new ListNavigationGroup(ListOrientation.Vertical, audioTrackListPanel, audioTrackListBox),
     );
@@ -307,7 +306,7 @@ function tvScreen() {
   ]
 }
 
-function castScreen() {
+export function castScreen() {
   let controlBar = new ControlBar({
     components: [
       new Container({
