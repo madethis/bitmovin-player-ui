@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { SubtitleOverlay } from '../components/subtitleoverlay';
 import { SettingsPanelPage } from '../components/settingspanelpage';
 import { SettingsPanelItem } from '../components/settingspanelitem';
@@ -37,12 +39,39 @@ import { Button, ButtonConfig } from '../components/button';
 
 declare const window: any;
 
+function sendCustomMessage(message: string) {
+  if(window?.bitmovin?.customMessageHandler?.sendSynchronous) {
+    window.bitmovin.customMessageHandler.sendSynchronous(message);
+  }
+
+  if(window?.bitmovin?.customMessageHandler?.sendAsynchronous) {
+    window.bitmovin.customMessageHandler.sendAsynchronous(message + 'Async');
+  }
+}
+
+class ControlsStatus extends Container {
+  constructor() {
+    super();
+  }
+
+  configure(_player: PlayerAPI, uimanager: UIInstanceManager): void {
+    uimanager.onControlsShow.subscribe(() => {
+      sendCustomMessage('controlsVisible');
+    });
+
+    uimanager.onControlsHide.subscribe(() => {
+      sendCustomMessage('controlsHidden');
+    });
+
+  }
+}
+
 class BackButton extends Button<ButtonConfig> {
   constructor(config?: ButtonConfig) {
-    super(config);
+    super(config || {});
 
     this.config = this.mergeConfig(
-      config,
+      config || {},
       {
         cssClasses: ["ui-backbutton"],
       } as ButtonConfig,
@@ -56,13 +85,7 @@ class BackButton extends Button<ButtonConfig> {
     // this is build around the customMessageHandler support in the react-native SDK
     // on web this will not do anything, but you could setup a function to handle this
     this.onClick.subscribe(() => {
-      if(window?.bitmovin?.customMessageHandler?.sendSynchronous) {
-        window.bitmovin.customMessageHandler.sendSynchronous('back');
-      }
-
-      if(window?.bitmovin?.customMessageHandler?.sendAsynchronous) {
-        window.bitmovin.customMessageHandler.sendAsynchronous('backAsync');
-      }
+      sendCustomMessage('back');
     });
   }
 }
@@ -147,6 +170,7 @@ export function defaultScreen() {
 
   return new UIContainer({
     components: [
+      new ControlsStatus(),
       new SubtitleOverlay(),
       new BufferingOverlay(),
       new CastStatusOverlay(),
@@ -228,6 +252,7 @@ export function tvScreen() {
 
     const uiContainer = new UIContainer({
       components: [
+        new ControlsStatus(),
         new SubtitleOverlay(),
         new BufferingOverlay(),
         new ControlBar({
@@ -328,6 +353,7 @@ export function castScreen() {
 
   return new CastUIContainer({
     components: [
+      new ControlsStatus(),
       new SubtitleOverlay(),
       new BufferingOverlay(),
       new PlaybackToggleOverlay(),
