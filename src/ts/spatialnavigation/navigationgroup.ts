@@ -61,11 +61,11 @@ export class NavigationGroup {
     this.activeElement.focus();
   }
 
-  private blurActiveElement(): void {
+  public blurActiveElement(): void {
     this.activeElement?.blur();
   }
 
-  private focusFirstElement(): void {
+  public focusFirstElement(): void {
     const element = getHtmlElementsFromComponents(this.components)[0];
     if (element) {
       this.focusElement(element);

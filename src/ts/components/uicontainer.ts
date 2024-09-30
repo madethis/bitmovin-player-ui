@@ -62,6 +62,8 @@ export class UIContainer extends Container<UIContainerConfig> {
   private userInteractionEvents: { name: string, handler: EventListenerOrEventListenerObject }[];
   private hidingPrevented: () => boolean;
 
+  public isUiShown: boolean = false;
+
   public hideUi: () => void = () => {};
   public showUi: () => void = () => {};
 
@@ -103,7 +105,7 @@ export class UIContainer extends Container<UIContainerConfig> {
       return;
     }
 
-    let isUiShown = false;
+    // let isUiShown = false;
     let isSeeking = false;
     let isFirstTouch = true;
     let playerState: PlayerUtils.PlayerState;
@@ -113,10 +115,10 @@ export class UIContainer extends Container<UIContainerConfig> {
     };
 
     this.showUi = () => {
-      if (!isUiShown) {
+      if (!this.isUiShown) {
         // Let subscribers know that they should reveal themselves
         uimanager.onControlsShow.dispatch(this);
-        isUiShown = true;
+        this.isUiShown = true;
       }
       // Don't trigger timeout while seeking (it will be triggered once the seek is finished) or casting
       if (!isSeeking && !player.isCasting() && !this.hidingPrevented()) {
@@ -126,7 +128,7 @@ export class UIContainer extends Container<UIContainerConfig> {
 
     this.hideUi = () => {
       // Hide the UI only if it is shown, and if not casting
-      if (isUiShown && !player.isCasting()) {
+      if (this.isUiShown && !player.isCasting()) {
         // Issue a preview event to check if we are good to hide the controls
         let previewHideEventArgs = <CancelEventArgs>{};
         uimanager.onPreviewControlsHide.dispatch(this, previewHideEventArgs);
@@ -134,7 +136,7 @@ export class UIContainer extends Container<UIContainerConfig> {
         if (!previewHideEventArgs.cancel) {
           // If the preview wasn't canceled, let subscribers know that they should now hide themselves
           uimanager.onControlsHide.dispatch(this);
-          isUiShown = false;
+          this.isUiShown = false;
         } else {
           // If the hide preview was canceled, continue to show UI
           this.showUi();
@@ -170,7 +172,7 @@ export class UIContainer extends Container<UIContainerConfig> {
           return !(buttonComponent && buttonComponent.getConfig().acceptsTouchWithUiHidden);
         });
 
-        if (!isUiShown) {
+        if (!this.isUiShown) {
           // Only if the UI is hidden, we prevent other actions (except for the first touch) and reveal the UI
           // instead. The first touch is not prevented to let other listeners receive the event and trigger an
           // initial action, e.g. the huge playback button can directly start playback instead of requiring a double

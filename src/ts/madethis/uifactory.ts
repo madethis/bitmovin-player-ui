@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { SubtitleOverlay } from '../components/subtitleoverlay';
 import { SettingsPanelPage } from '../components/settingspanelpage';
 import { SettingsPanelItem } from '../components/settingspanelitem';
@@ -36,33 +34,35 @@ import { RootNavigationGroup } from '../spatialnavigation/rootnavigationgroup';
 import { ListNavigationGroup, ListOrientation } from '../spatialnavigation/ListNavigationGroup';
 import { QuickSeekButton } from '../components/quickseekbutton';
 import { Button, ButtonConfig } from '../components/button';
+import { Component } from '../components/component';
+import { ComponentConfig } from '../main';
+import { sendCustomMessage, onCustomMessage } from './messages';
 
-declare const window: any;
+class ControlsStatus extends Component<ComponentConfig> {
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
 
-function sendCustomMessage(message: string) {
-  if(window?.bitmovin?.customMessageHandler?.sendSynchronous) {
-    window.bitmovin.customMessageHandler.sendSynchronous(message);
-  }
+    let isControlsVisible = false;
 
-  if(window?.bitmovin?.customMessageHandler?.sendAsynchronous) {
-    window.bitmovin.customMessageHandler.sendAsynchronous(message + 'Async');
-  }
-}
-
-class ControlsStatus extends Container {
-  constructor() {
-    super();
-  }
-
-  configure(_player: PlayerAPI, uimanager: UIInstanceManager): void {
     uimanager.onControlsShow.subscribe(() => {
+      isControlsVisible = true;
       sendCustomMessage('controlsVisible');
     });
 
     uimanager.onControlsHide.subscribe(() => {
+      isControlsVisible = false;
       sendCustomMessage('controlsHidden');
     });
 
+    onCustomMessage('back', () => {
+      if (isControlsVisible && player.isPlaying()) {
+        window?.document?.dispatchEvent(
+          new KeyboardEvent('keydown', { keyCode: 27 })
+        );
+      } else {
+        sendCustomMessage('back');
+      }
+    });
   }
 }
 

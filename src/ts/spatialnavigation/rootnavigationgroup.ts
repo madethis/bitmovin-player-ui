@@ -14,15 +14,23 @@ export class RootNavigationGroup extends NavigationGroup {
   }
 
   public handleAction(action: Action) {
-    this.container.showUi();
-
-    super.handleAction(action);
+    if (!this.container.isUiShown) {
+      this.container.showUi();
+      this.focusFirstElement();
+    } else {
+      this.container.showUi();
+      super.handleAction(action);
+    }
   }
 
   public handleNavigation(direction: Direction) {
-    this.container.showUi();
-
-    super.handleNavigation(direction);
+    if (!this.container.isUiShown) {
+      this.container.showUi();
+      this.focusFirstElement();
+    } else {
+      this.container.showUi();
+      super.handleNavigation(direction);
+    }
   }
 
   protected defaultActionHandler(action: Action): void {
