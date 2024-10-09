@@ -113,7 +113,11 @@ export class QuickSeekButton extends Button<QuickSeekButtonConfig> {
   }
 
   private onSeek = (event: SeekEvent): void => {
-    this.currentSeekTarget = event.seekTarget;
+    // This is not working because the shape of the event on androidtv is
+    // { type: "seek", from: { time: number, source: { ... } }, to: { time: number, source: { ... } } }
+    // ie. event.seekTarget is undefined
+    // causing player.seek(...) to be called with undefined (in onClick.subscribe(() => {...})) and crashing the native side
+    // this.currentSeekTarget = event.seekTarget;
   };
 
   private onSeekedOrTimeShifted = () => {
