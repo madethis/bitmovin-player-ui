@@ -87,6 +87,50 @@ class DebugMode extends Label<LabelConfig> {
   }
 }
 
+enum RemoteControlAction {
+  LOAD_NEXT = 'loadNext',
+  LOAD_PREVIOUS = 'loadPrevious',
+  PLAY_PAUSE = 'playPause',
+}
+
+const RemoteControlKeyMap = {
+  33: RemoteControlAction.LOAD_NEXT,
+  34: RemoteControlAction.LOAD_PREVIOUS,
+  179: RemoteControlAction.PLAY_PAUSE,
+} as const;
+
+class RemoteControl extends Component<ComponentConfig> {
+  private player: PlayerAPI;
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+    this.player = player;
+    window?.document?.addEventListener('keydown', this.handleKeyDown);
+  }
+
+  release(): void {
+    window?.document?.removeEventListener('keydown', this.handleKeyDown);
+  }
+
+  private handleKeyDown = (e: KeyboardEvent): void => {
+    const action = RemoteControlKeyMap[e.keyCode];
+
+    if (action) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      if (action === RemoteControlAction.LOAD_NEXT || action === RemoteControlAction.LOAD_PREVIOUS) {
+        sendCustomMessage(action);
+      }
+
+      if (action === RemoteControlAction.PLAY_PAUSE) {
+        this.player.isPlaying() ? this.player.pause('remote') : this.player.play('remote');
+      }
+    }
+  }
+
+}
+
 class ControlsStatus extends Component<ComponentConfig> {
   configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager);
@@ -302,6 +346,7 @@ export function tvScreen() {
   const uiContainer = new UIContainer({
     components: [
       new DebugMode(),
+      new RemoteControl(),
       new ControlsStatus(),
       new SubtitleOverlay(),
       new BufferingOverlay(),
