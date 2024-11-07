@@ -3,6 +3,23 @@ $color-focus: #ff0000;
 
 @import "skin-modern/skin";
 
+.#{$prefix}-ui-debug {
+  display: none;
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  background: rgb(0, 0, 0);
+  z-index: 1000;
+  color: white;
+  border: 1px solid white;
+  font-size: 0.8em;
+  padding: 0.2em 0.5em;
+
+  &.enabled {
+    display: block;
+  }
+}
+
 .#{$prefix}-ui-uicontainer {
   font-family: var(
     --font-body,

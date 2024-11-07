@@ -35,8 +35,57 @@ import { ListNavigationGroup, ListOrientation } from '../spatialnavigation/ListN
 import { QuickSeekButton } from '../components/quickseekbutton';
 import { Button, ButtonConfig } from '../components/button';
 import { Component } from '../components/component';
-import { ComponentConfig } from '../main';
+import { ComponentConfig, Label, LabelConfig } from '../main';
 import { sendCustomMessage, onCustomMessage } from './messages';
+import { Action, Direction, KeyMap } from '../spatialnavigation/types';
+import { getKeyMapForPlatform } from '../spatialnavigation/keymap';
+
+class DebugMode extends Label<LabelConfig> {
+  private debugModeSequenceDetection: number = 0;
+  private debugMode: boolean = false;
+  private keyMap: KeyMap;
+
+  constructor(config: LabelConfig = {}) {
+    super(config);
+
+    this.config = this.mergeConfig(config, {
+      cssClass: 'ui-debug',
+    }, this.config);
+  }
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+
+    this.keyMap = getKeyMapForPlatform();
+    window?.document?.addEventListener('keyup', this.handleKeyUp);
+  }
+
+  release(): void {
+    window?.document?.removeEventListener('keyup', this.handleKeyUp);
+  }
+
+  private handleKeyUp = (e: KeyboardEvent): void => {
+    if (this.debugMode) {
+      this.setText(`Key: ${e.key} (${e.keyCode})`);
+    }
+
+    const event: Direction | Action | undefined = this.keyMap[e.keyCode];
+    if (event === Direction.DOWN) {
+      this.debugModeSequenceDetection++;
+      if (this.debugModeSequenceDetection === 15) {
+        this.debugMode = !this.debugMode;
+        if (this.debugMode) {
+          this.getDomElement().addClass("enabled");
+        } else {
+          this.getDomElement().removeClass("enabled");
+        }
+        this.debugModeSequenceDetection = 0;
+      }
+    } else {
+      this.debugModeSequenceDetection = 0;
+    }
+  }
+}
 
 class ControlsStatus extends Component<ComponentConfig> {
   configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
@@ -195,133 +244,134 @@ export function defaultScreen() {
 }
 
 export function tvScreen() {
-    const subtitleListBox = new SubtitleListBox();
-    const subtitleListPanel = new SettingsPanel({
-      components: [
-        new SettingsPanelPage({
-          components: [new SettingsPanelItem(null, subtitleListBox)],
-        }),
-      ],
-      hidden: true,
-    });
+  const subtitleListBox = new SubtitleListBox();
+  const subtitleListPanel = new SettingsPanel({
+    components: [
+      new SettingsPanelPage({
+        components: [new SettingsPanelItem(null, subtitleListBox)],
+      }),
+    ],
+    hidden: true,
+  });
 
-    const audioTrackListBox = new AudioTrackListBox();
-    const audioTrackListPanel = new SettingsPanel({
-      components: [
-        new SettingsPanelPage({
-          components: [new SettingsPanelItem(null, audioTrackListBox)],
-        }),
-      ],
-      hidden: true,
-    });
+  const audioTrackListBox = new AudioTrackListBox();
+  const audioTrackListPanel = new SettingsPanel({
+    components: [
+      new SettingsPanelPage({
+        components: [new SettingsPanelItem(null, audioTrackListBox)],
+      }),
+    ],
+    hidden: true,
+  });
 
-    const quickSeekBackButton = new QuickSeekButton({ seekSeconds: -15 });
-    const quickSeekForwardButton = new QuickSeekButton({ seekSeconds: 15 });
-    const playbackToggleButton = new PlaybackToggleButton();
-    const seekBar = new SeekBar({ label: new SeekBarLabel() });
-   
-    const subtitleToggleButton = new SettingsToggleButton({
-      settingsPanel: subtitleListPanel,
-      autoHideWhenNoActiveSettings: true,
-      cssClass: 'ui-subtitlesettingstogglebutton',
-      text: i18n.getLocalizer('settings.subtitles'),
-    });
+  const quickSeekBackButton = new QuickSeekButton({ seekSeconds: -15 });
+  const quickSeekForwardButton = new QuickSeekButton({ seekSeconds: 15 });
+  const playbackToggleButton = new PlaybackToggleButton();
+  const seekBar = new SeekBar({ label: new SeekBarLabel() });
 
-    const audioToggleButton = new SettingsToggleButton({
-      settingsPanel: audioTrackListPanel,
-      autoHideWhenNoActiveSettings: true,
-      cssClass: 'ui-audiotracksettingstogglebutton',
-      ariaLabel: i18n.getLocalizer('settings.audio.track'),
-      text: i18n.getLocalizer('settings.audio.track'),
-    });
+  const subtitleToggleButton = new SettingsToggleButton({
+    settingsPanel: subtitleListPanel,
+    autoHideWhenNoActiveSettings: true,
+    cssClass: 'ui-subtitlesettingstogglebutton',
+    text: i18n.getLocalizer('settings.subtitles'),
+  });
 
-    const playbackControls = new Container({
-      components: [
-        quickSeekBackButton,
-        playbackToggleButton,
-        quickSeekForwardButton,
-      ], cssClasses: ['ui-controls-playback']
-    })
+  const audioToggleButton = new SettingsToggleButton({
+    settingsPanel: audioTrackListPanel,
+    autoHideWhenNoActiveSettings: true,
+    cssClass: 'ui-audiotracksettingstogglebutton',
+    ariaLabel: i18n.getLocalizer('settings.audio.track'),
+    text: i18n.getLocalizer('settings.audio.track'),
+  });
 
-    const settingsControls = new Container({
-      components: [
-        subtitleToggleButton,
-        audioToggleButton,
-      ], cssClasses: ['ui-controls-settings']
-    })
+  const playbackControls = new Container({
+    components: [
+      quickSeekBackButton,
+      playbackToggleButton,
+      quickSeekForwardButton,
+    ], cssClasses: ['ui-controls-playback']
+  })
 
-    const uiContainer = new UIContainer({
-      components: [
-        new ControlsStatus(),
-        new SubtitleOverlay(),
-        new BufferingOverlay(),
-        new ControlBar({
-          components: [
-            new Container({
-              components: [
-                new Container({
-                  components: [
-                    new PlaybackTimeLabel({
-                      timeLabelMode: PlaybackTimeLabelMode.CurrentTime,
-                      hideInLivePlayback: true,
-                    }),
-                    new PlaybackTimeLabel({
-                      timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
-                      cssClasses: ['text-right'],
-                    })
-                  ],
-                  cssClasses: ['controlbar-time-labels']
-                }),
-                seekBar,
-              ],
-              cssClasses: ['controlbar-secondary'],
-            }),
-            new Container({
-              components: [
-                playbackControls,
-                settingsControls,
-              ],
-              cssClasses: ['controlbar-primary'],
-            }),
-            new Container({
-              components: [
-                subtitleListPanel,
-                audioTrackListPanel,
-              ],
-              cssClasses: ['controlbar-lists'],
-            }),
-          ], cssClass: 'ui-controlbar',
-        }),
-        new TitleBar({
-          components: [
-            new MetadataLabel({ content: MetadataLabelContent.Title }),
-            new MetadataLabel({ content: MetadataLabelContent.Description }),
-          ],
-        }),
-        new ErrorMessageOverlay(),
-      ],
-      cssClasses: ['ui-skin-tv'],
-      hideDelay: 2000,
-      hidePlayerStateExceptions: [
-        PlayerUtils.PlayerState.Prepared,
-        PlayerUtils.PlayerState.Paused,
-        PlayerUtils.PlayerState.Finished,
-      ],
-    });
+  const settingsControls = new Container({
+    components: [
+      subtitleToggleButton,
+      audioToggleButton,
+    ], cssClasses: ['ui-controls-settings']
+  })
 
-    const spatialNavigation = new SpatialNavigation(
-      new RootNavigationGroup(
-        uiContainer,
-        playbackToggleButton,
-        quickSeekBackButton,
-        quickSeekForwardButton,
-        audioToggleButton,
-        subtitleToggleButton,
-        seekBar,
-      ),
-      new ListNavigationGroup(ListOrientation.Vertical, subtitleListPanel, subtitleListBox),
-      new ListNavigationGroup(ListOrientation.Vertical, audioTrackListPanel, audioTrackListBox),
-    );
+  const uiContainer = new UIContainer({
+    components: [
+      new DebugMode(),
+      new ControlsStatus(),
+      new SubtitleOverlay(),
+      new BufferingOverlay(),
+      new ControlBar({
+        components: [
+          new Container({
+            components: [
+              new Container({
+                components: [
+                  new PlaybackTimeLabel({
+                    timeLabelMode: PlaybackTimeLabelMode.CurrentTime,
+                    hideInLivePlayback: true,
+                  }),
+                  new PlaybackTimeLabel({
+                    timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
+                    cssClasses: ['text-right'],
+                  })
+                ],
+                cssClasses: ['controlbar-time-labels']
+              }),
+              seekBar,
+            ],
+            cssClasses: ['controlbar-secondary'],
+          }),
+          new Container({
+            components: [
+              playbackControls,
+              settingsControls,
+            ],
+            cssClasses: ['controlbar-primary'],
+          }),
+          new Container({
+            components: [
+              subtitleListPanel,
+              audioTrackListPanel,
+            ],
+            cssClasses: ['controlbar-lists'],
+          }),
+        ], cssClass: 'ui-controlbar',
+      }),
+      new TitleBar({
+        components: [
+          new MetadataLabel({ content: MetadataLabelContent.Title }),
+          new MetadataLabel({ content: MetadataLabelContent.Description }),
+        ],
+      }),
+      new ErrorMessageOverlay(),
+    ],
+    cssClasses: ['ui-skin-tv'],
+    hideDelay: 2000,
+    hidePlayerStateExceptions: [
+      PlayerUtils.PlayerState.Prepared,
+      PlayerUtils.PlayerState.Paused,
+      PlayerUtils.PlayerState.Finished,
+    ],
+  });
+
+  const spatialNavigation = new SpatialNavigation(
+    new RootNavigationGroup(
+      uiContainer,
+      playbackToggleButton,
+      quickSeekBackButton,
+      quickSeekForwardButton,
+      audioToggleButton,
+      subtitleToggleButton,
+      seekBar,
+    ),
+    new ListNavigationGroup(ListOrientation.Vertical, subtitleListPanel, subtitleListBox),
+    new ListNavigationGroup(ListOrientation.Vertical, audioTrackListPanel, audioTrackListBox),
+  );
 
   return [
     {
