@@ -93,11 +93,11 @@ enum RemoteControlAction {
   PLAY_PAUSE = 'playPause',
 }
 
-const RemoteControlKeyMap = {
+const RemoteControlKeyMap: any = {
   33: RemoteControlAction.LOAD_NEXT,
   34: RemoteControlAction.LOAD_PREVIOUS,
   179: RemoteControlAction.PLAY_PAUSE,
-} as const;
+}
 
 class RemoteControl extends Component<ComponentConfig> {
   private player: PlayerAPI;
