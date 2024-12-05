@@ -15,8 +15,16 @@ export class RootNavigationGroup extends NavigationGroup {
 
   public handleAction(action: Action) {
     if (!this.container.isUiShown) {
+      if (action === Action.BACK) {
+        // web-tv: send back signal to frontend code
+        // @ts-ignore
+        window.bitmovin?.customMessageHandler?.sendSynchronous?.("back");
+        return
+      }
+
       this.container.showUi();
       this.focusFirstElement();
+
     } else {
       this.container.showUi();
       super.handleAction(action);
