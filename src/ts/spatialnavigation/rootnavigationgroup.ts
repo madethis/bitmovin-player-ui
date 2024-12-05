@@ -20,10 +20,11 @@ export class RootNavigationGroup extends NavigationGroup {
         // @ts-ignore
         window.bitmovin?.customMessageHandler?.sendSynchronous?.("back");
         return
-      } else {
-        this.container.showUi();
-        this.focusFirstElement();
       }
+
+      this.container.showUi();
+      this.focusFirstElement();
+
     } else {
       this.container.showUi();
       super.handleAction(action);
