@@ -5,7 +5,8 @@
   "main": "./dist/js/framework/main.js",
   "types": "./dist/js/framework/main.d.ts",
   "scripts": {
-    "test": "npx jest"
+    "test": "npx jest",
+    "madethis-build": "gulp -f gulpfile.madethis.js build-prod"
   },
   "repository": {
     "type": "git",
