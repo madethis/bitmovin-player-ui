@@ -16,6 +16,11 @@ const TizenKeyMap = {
     13: Action.SELECT,
     // Back
     10009: Action.BACK,
+    // Play/Pause
+    179: Action.PLAY_PAUSE,
+    // Next/Previous
+    33: Action.NEXT,
+    34: Action.PREVIOUS,
   },
 };
 
@@ -34,6 +39,11 @@ const WebOsKeyMap = {
     13: Action.SELECT,
     // Back
     461: Action.BACK,
+    // Play/Pause
+    179: Action.PLAY_PAUSE,
+    // Next/Previous
+    33: Action.NEXT,
+    34: Action.PREVIOUS,
   },
 };
 
@@ -77,6 +87,11 @@ const AndroidKeyMap = {
     // Back
     4: Action.BACK,
     27: Action.BACK,
+    // Play/Pause
+    179: Action.PLAY_PAUSE,
+    // Next/Previous
+    33: Action.NEXT,
+    34: Action.PREVIOUS,
   },
 };
 
@@ -95,6 +110,11 @@ const HisenseKeyMap = {
     13: Action.SELECT,
     // Back
     8: Action.BACK,
+    // Play/Pause
+    179: Action.PLAY_PAUSE,
+    // Next/Previous
+    33: Action.NEXT,
+    34: Action.PREVIOUS,
   },
 };
 
@@ -112,6 +132,11 @@ const DefaultKeyMap = {
   13: Action.SELECT,
   // Escape
   27: Action.BACK,
+  // Play/Pause
+  179: Action.PLAY_PAUSE,
+  // Next/Previous
+  33: Action.NEXT,
+  34: Action.PREVIOUS,
 };
 
 /**

@@ -1,7 +1,7 @@
 import { RootNavigationGroup } from './rootnavigationgroup';
 import { NodeEventSubscriber } from './nodeeventsubscriber';
 import { Action, Direction } from './types';
-import {getBoundingRectFromElement} from './navigationalgorithm';
+import { getBoundingRectFromElement } from './navigationalgorithm';
 
 const DefaultScrubSpeedPercentage = 0.005;
 const ScrubSpeedClearInterval = 100;
@@ -12,13 +12,19 @@ const ScrubSpeedMultiplier = 1.1;
  * scrubbing tooltip is shown as if the user scrubbed using the mouse/touchscreen.
  */
 export class SeekBarHandler {
-  private readonly cursorPosition = { x: 0, y: 0};
+  private readonly cursorPosition = { x: 0, y: 0 };
   private readonly eventSubscriber: NodeEventSubscriber;
   private isScrubbing = false;
   private scrubSpeedResetTimeout: number;
   private scrubSpeedPercentage = DefaultScrubSpeedPercentage;
+  private readonly defaultRootNavigationGroupOnNavigation: (direction: Direction, target: HTMLElement, preventDefault: () => void) => void;
+  private readonly defaultRootNavigationGroupOnAction: (action: Action, target: HTMLElement, preventDefault: () => void) => void;
+  private seekBouncer: any;
 
   constructor(private readonly rootNavigationGroup: RootNavigationGroup) {
+    this.defaultRootNavigationGroupOnNavigation = this.rootNavigationGroup.onNavigation;
+    this.defaultRootNavigationGroupOnAction = this.rootNavigationGroup.onAction;
+
     this.rootNavigationGroup.onAction = this.onAction;
     this.eventSubscriber = new NodeEventSubscriber();
     this.rootNavigationGroup.onNavigation = this.onNavigation;
@@ -67,6 +73,7 @@ export class SeekBarHandler {
       this.updateCursorPosition(direction, seekBarWrapper);
     } else {
       this.initializeCursorPosition(seekBarWrapper);
+      this.updateCursorPosition(direction, seekBarWrapper);
     }
 
     this.isScrubbing = true;
@@ -84,6 +91,19 @@ export class SeekBarHandler {
   }
 
   private readonly onNavigation = (direction: Direction, target: HTMLElement, preventDefault: () => void): void => {
+    if (this.defaultRootNavigationGroupOnNavigation) {
+      let halt = false;
+
+      this.defaultRootNavigationGroupOnNavigation(direction, target, () => {
+        halt = true;
+        preventDefault();
+      });
+
+      if (halt) {
+        return;
+      }
+    }
+
     if (!isSeekBarWrapper(target)) {
       return;
     }
@@ -96,6 +116,11 @@ export class SeekBarHandler {
 
     this.initializeOrUpdateCursorPosition(target, direction);
     this.dispatchMouseMoveEvent(getSeekBar(target));
+
+    clearTimeout(this.seekBouncer);
+    this.seekBouncer = setTimeout(() => {
+      this.dispatchMouseClickEvent(getSeekBar(target));
+    }, 300);
 
     preventDefault();
   };
@@ -117,6 +142,7 @@ export class SeekBarHandler {
     this.resetCursorPosition();
     this.isScrubbing = false;
     this.dispatchMouseLeaveEvent(seekBar);
+    clearTimeout(this.seekBouncer);
   }
 
   private dispatchMouseLeaveEvent(seekBar: Element): void {
@@ -124,6 +150,19 @@ export class SeekBarHandler {
   }
 
   private readonly onAction = (action: Action, target: HTMLElement, preventDefault: () => void): void => {
+    if (this.defaultRootNavigationGroupOnAction) {
+      let halt = false;
+
+      this.defaultRootNavigationGroupOnAction(action, target, () => {
+        halt = true;
+        preventDefault();
+      });
+
+      if (halt) {
+        return;
+      }
+    }
+
     if (!isSeekBarWrapper(target)) {
       return;
     }

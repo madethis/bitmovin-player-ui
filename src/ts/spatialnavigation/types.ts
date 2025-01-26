@@ -15,4 +15,7 @@ export enum Direction {
 export enum Action {
   SELECT = 'select',
   BACK = 'back',
+  NEXT = 'next',
+  PREVIOUS = 'previous',
+  PLAY_PAUSE = 'playPause',
 }

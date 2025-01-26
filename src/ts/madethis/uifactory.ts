@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SubtitleOverlay } from '../components/subtitleoverlay';
 import { SettingsPanelPage } from '../components/settingspanelpage';
 import { SettingsPanelItem } from '../components/settingspanelitem';
@@ -87,64 +88,26 @@ class DebugMode extends Label<LabelConfig> {
   }
 }
 
-enum RemoteControlAction {
-  LOAD_NEXT = 'loadNext',
-  LOAD_PREVIOUS = 'loadPrevious',
-  PLAY_PAUSE = 'playPause',
-}
-
-const RemoteControlKeyMap: any = {
-  33: RemoteControlAction.LOAD_NEXT,
-  34: RemoteControlAction.LOAD_PREVIOUS,
-  179: RemoteControlAction.PLAY_PAUSE,
-}
-
-class RemoteControl extends Component<ComponentConfig> {
+class ControlsStatus extends Component<ComponentConfig> {
   private player: PlayerAPI;
 
   configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager);
+
     this.player = player;
-    window?.document?.addEventListener('keydown', this.handleKeyDown);
-  }
-
-  release(): void {
-    window?.document?.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  private handleKeyDown = (e: KeyboardEvent): void => {
-    const action = RemoteControlKeyMap[e.keyCode];
-
-    if (action) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      if (action === RemoteControlAction.LOAD_NEXT || action === RemoteControlAction.LOAD_PREVIOUS) {
-        sendCustomMessage(action);
-      }
-
-      if (action === RemoteControlAction.PLAY_PAUSE) {
-        this.player.isPlaying() ? this.player.pause('remote') : this.player.play('remote');
-      }
-    }
-  }
-
-}
-
-class ControlsStatus extends Component<ComponentConfig> {
-  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
-    super.configure(player, uimanager);
 
     let isControlsVisible = false;
 
     uimanager.onControlsShow.subscribe(() => {
       isControlsVisible = true;
       sendCustomMessage('controlsVisible');
+      uimanager.spatialNavigation?.getActiveNavigationGroup()?.uiShown?.();
     });
 
     uimanager.onControlsHide.subscribe(() => {
       isControlsVisible = false;
       sendCustomMessage('controlsHidden');
+      uimanager.spatialNavigation?.getActiveNavigationGroup()?.uiHidden?.();
     });
 
     onCustomMessage('back', () => {
@@ -156,6 +119,34 @@ class ControlsStatus extends Component<ComponentConfig> {
         sendCustomMessage('back');
       }
     });
+
+    window?.document?.addEventListener('player:exit', this.handleExit);
+    window?.document?.addEventListener('player:next', this.handleNext);
+    window?.document?.addEventListener('player:previous', this.handlePrevious);
+    window?.document?.addEventListener('player:playPause', this.handlePlayPause);
+  }
+
+  release(): void {
+    window?.document?.removeEventListener('player:exit', this.handleExit);
+    window?.document?.removeEventListener('player:next', this.handleNext);
+    window?.document?.removeEventListener('player:previous', this.handlePrevious);
+    window?.document?.removeEventListener('player:playPause', this.handlePlayPause);
+  }
+
+  private handleExit = (): void => {
+    sendCustomMessage('back');
+  }
+
+  private handleNext = (): void => {
+    sendCustomMessage('loadNext');
+  }
+
+  private handlePrevious = (): void => {
+    sendCustomMessage('loadPrevious');
+  }
+
+  private handlePlayPause = (): void => {
+    this.player.isPlaying() ? this.player.pause('ui') : this.player.play('ui');
   }
 }
 
@@ -179,6 +170,54 @@ class BackButton extends Button<ButtonConfig> {
     // on web this will not do anything, but you could setup a function to handle this
     this.onClick.subscribe(() => {
       sendCustomMessage('back');
+    });
+  }
+}
+
+class LoadPreviousButton extends Button<ButtonConfig> {
+  constructor(config?: ButtonConfig) {
+    super(config || {});
+
+    this.config = this.mergeConfig(
+      config || {},
+      {
+        cssClasses: ["ui-loadpreviousbutton"],
+      } as ButtonConfig,
+      this.config,
+    );
+  }
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+
+    // this is build around the customMessageHandler support in the react-native SDK
+    // on web this will not do anything, but you could setup a function to handle this
+    this.onClick.subscribe(() => {
+      sendCustomMessage('loadPrevious');
+    });
+  }
+}
+
+class LoadNextButton extends Button<ButtonConfig> {
+  constructor(config?: ButtonConfig) {
+    super(config || {});
+
+    this.config = this.mergeConfig(
+      config || {},
+      {
+        cssClasses: ["ui-loadnextbutton"],
+      } as ButtonConfig,
+      this.config,
+    );
+  }
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+
+    // this is build around the customMessageHandler support in the react-native SDK
+    // on web this will not do anything, but you could setup a function to handle this
+    this.onClick.subscribe(() => {
+      sendCustomMessage('loadNext');
     });
   }
 }
@@ -237,6 +276,8 @@ export function defaultScreen() {
           new Container({
             components: [
               new VolumeToggleButton(),
+              new LoadPreviousButton(),
+              new LoadNextButton(),
               new Spacer(),
               new PictureInPictureToggleButton(),
               new AirPlayToggleButton(),
@@ -278,152 +319,13 @@ export function defaultScreen() {
       new ErrorMessageOverlay(),
     ],
     cssClasses: ['ui-skin-web', 'ui-skin-mobile'],
-    hideDelay: 2000,
+    hideDelay: 4000,
     hidePlayerStateExceptions: [
       PlayerUtils.PlayerState.Prepared,
       PlayerUtils.PlayerState.Paused,
       PlayerUtils.PlayerState.Finished,
     ],
   });
-}
-
-export function tvScreen() {
-  const subtitleListBox = new SubtitleListBox();
-  const subtitleListPanel = new SettingsPanel({
-    components: [
-      new SettingsPanelPage({
-        components: [new SettingsPanelItem(null, subtitleListBox)],
-      }),
-    ],
-    hidden: true,
-  });
-
-  const audioTrackListBox = new AudioTrackListBox();
-  const audioTrackListPanel = new SettingsPanel({
-    components: [
-      new SettingsPanelPage({
-        components: [new SettingsPanelItem(null, audioTrackListBox)],
-      }),
-    ],
-    hidden: true,
-  });
-
-  const quickSeekBackButton = new QuickSeekButton({ seekSeconds: -15 });
-  const quickSeekForwardButton = new QuickSeekButton({ seekSeconds: 15 });
-  const playbackToggleButton = new PlaybackToggleButton();
-  const seekBar = new SeekBar({ label: new SeekBarLabel() });
-
-  const subtitleToggleButton = new SettingsToggleButton({
-    settingsPanel: subtitleListPanel,
-    autoHideWhenNoActiveSettings: true,
-    cssClass: 'ui-subtitlesettingstogglebutton',
-    text: i18n.getLocalizer('settings.subtitles'),
-  });
-
-  const audioToggleButton = new SettingsToggleButton({
-    settingsPanel: audioTrackListPanel,
-    autoHideWhenNoActiveSettings: true,
-    cssClass: 'ui-audiotracksettingstogglebutton',
-    ariaLabel: i18n.getLocalizer('settings.audio.track'),
-    text: i18n.getLocalizer('settings.audio.track'),
-  });
-
-  const playbackControls = new Container({
-    components: [
-      quickSeekBackButton,
-      playbackToggleButton,
-      quickSeekForwardButton,
-    ], cssClasses: ['ui-controls-playback']
-  })
-
-  const settingsControls = new Container({
-    components: [
-      subtitleToggleButton,
-      audioToggleButton,
-    ], cssClasses: ['ui-controls-settings']
-  })
-
-  const uiContainer = new UIContainer({
-    components: [
-      new DebugMode(),
-      new RemoteControl(),
-      new ControlsStatus(),
-      new SubtitleOverlay(),
-      new BufferingOverlay(),
-      new ControlBar({
-        components: [
-          new Container({
-            components: [
-              new Container({
-                components: [
-                  new PlaybackTimeLabel({
-                    timeLabelMode: PlaybackTimeLabelMode.CurrentTime,
-                    hideInLivePlayback: true,
-                  }),
-                  new PlaybackTimeLabel({
-                    timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
-                    cssClasses: ['text-right'],
-                  })
-                ],
-                cssClasses: ['controlbar-time-labels']
-              }),
-              seekBar,
-            ],
-            cssClasses: ['controlbar-secondary'],
-          }),
-          new Container({
-            components: [
-              playbackControls,
-              settingsControls,
-            ],
-            cssClasses: ['controlbar-primary'],
-          }),
-          new Container({
-            components: [
-              subtitleListPanel,
-              audioTrackListPanel,
-            ],
-            cssClasses: ['controlbar-lists'],
-          }),
-        ], cssClass: 'ui-controlbar',
-      }),
-      new TitleBar({
-        components: [
-          new MetadataLabel({ content: MetadataLabelContent.Title }),
-          new MetadataLabel({ content: MetadataLabelContent.Description }),
-        ],
-      }),
-      new ErrorMessageOverlay(),
-    ],
-    cssClasses: ['ui-skin-tv'],
-    hideDelay: 2000,
-    hidePlayerStateExceptions: [
-      PlayerUtils.PlayerState.Prepared,
-      PlayerUtils.PlayerState.Paused,
-      PlayerUtils.PlayerState.Finished,
-    ],
-  });
-
-  const spatialNavigation = new SpatialNavigation(
-    new RootNavigationGroup(
-      uiContainer,
-      playbackToggleButton,
-      quickSeekBackButton,
-      quickSeekForwardButton,
-      audioToggleButton,
-      subtitleToggleButton,
-      seekBar,
-    ),
-    new ListNavigationGroup(ListOrientation.Vertical, subtitleListPanel, subtitleListBox),
-    new ListNavigationGroup(ListOrientation.Vertical, audioTrackListPanel, audioTrackListBox),
-  );
-
-  return [
-    {
-      ui: uiContainer,
-      spatialNavigation,
-    }
-  ]
 }
 
 export function castScreen() {
@@ -457,7 +359,7 @@ export function castScreen() {
       new ErrorMessageOverlay(),
     ],
     cssClasses: ['ui-skin-cast-receiver'],
-    hideDelay: 2000,
+    hideDelay: 4000,
     hidePlayerStateExceptions: [
       PlayerUtils.PlayerState.Prepared,
       PlayerUtils.PlayerState.Paused,
@@ -465,3 +367,132 @@ export function castScreen() {
     ],
   });
 }
+
+export function tvScreen() {
+  const subtitleListBox = new SubtitleListBox();
+  const subtitleListPanel = new SettingsPanel({
+    components: [
+      new SettingsPanelPage({
+        components: [new SettingsPanelItem(null, subtitleListBox)],
+      }),
+    ],
+    hidden: true,
+  });
+
+  const audioTrackListBox = new AudioTrackListBox();
+  const audioTrackListPanel = new SettingsPanel({
+    components: [
+      new SettingsPanelPage({
+        components: [new SettingsPanelItem(null, audioTrackListBox)],
+      }),
+    ],
+    hidden: true,
+  });
+
+  const subtitleToggleButton = new SettingsToggleButton({
+    settingsPanel: subtitleListPanel,
+    autoHideWhenNoActiveSettings: true,
+    cssClass: 'ui-subtitlesettingstogglebutton',
+    text: i18n.getLocalizer('settings.subtitles'),
+  });
+
+  const audioToggleButton = new SettingsToggleButton({
+    settingsPanel: audioTrackListPanel,
+    autoHideWhenNoActiveSettings: true,
+    cssClass: 'ui-audiotracksettingstogglebutton',
+    ariaLabel: i18n.getLocalizer('settings.audio.track'),
+    text: i18n.getLocalizer('settings.audio.track'),
+  });
+
+  const seekBar = new SeekBar({ label: new SeekBarLabel() });
+
+  const settingsControls = new Container({
+    components: [
+      subtitleToggleButton,
+      audioToggleButton,
+    ], cssClasses: ['ui-controls-settings']
+  })
+
+  const metadataControls = new Container({
+    components: [
+      new MetadataLabel({ content: MetadataLabelContent.Title }),
+    ], cssClasses: ['ui-controls-metadata']
+  })
+
+  const uiContainer = new UIContainer({
+    components: [
+      new DebugMode(),
+      // new RemoteControl(),
+      new ControlsStatus(),
+      new SubtitleOverlay(),
+      new BufferingOverlay(),
+
+      new ControlBar({
+        components: [
+          new Container({
+            components: [
+              metadataControls,
+              settingsControls,
+            ],
+            cssClasses: ['controlbar-secondary'],
+          }),
+          new Container({
+            components: [
+              seekBar,
+              new Container({
+                components: [
+                  new PlaybackTimeLabel({
+                    timeLabelMode: PlaybackTimeLabelMode.CurrentTime,
+                    hideInLivePlayback: true,
+                  }),
+                  new PlaybackTimeLabel({
+                    timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
+                    cssClasses: ['text-right'],
+                  })
+                ],
+                cssClasses: ['controlbar-time-labels']
+              }),
+            ],
+            cssClasses: ['controlbar-primary'],
+          }),
+          new Container({
+            components: [
+              subtitleListPanel,
+              audioTrackListPanel,
+            ],
+            cssClasses: ['controlbar-lists'],
+          }),
+
+        ], cssClass: 'ui-controlbar',
+      }),
+
+      new ErrorMessageOverlay(),
+    ],
+    cssClasses: ['ui-skin-tv'],
+    hideDelay: 4000,
+    hidePlayerStateExceptions: [
+      PlayerUtils.PlayerState.Prepared,
+      PlayerUtils.PlayerState.Paused,
+      PlayerUtils.PlayerState.Finished,
+    ],
+  });
+
+  const spatialNavigation = new SpatialNavigation(
+    new RootNavigationGroup(
+      uiContainer,
+      seekBar,
+      audioToggleButton,
+      subtitleToggleButton,
+    ),
+    new ListNavigationGroup(ListOrientation.Vertical, subtitleListPanel, subtitleListBox),
+    new ListNavigationGroup(ListOrientation.Vertical, audioTrackListPanel, audioTrackListBox),
+  );
+
+  return [
+    {
+      ui: uiContainer,
+      spatialNavigation,
+    }
+  ]
+}
+

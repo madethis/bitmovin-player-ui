@@ -20,7 +20,7 @@ export class NavigationGroup {
   private activeElement?: HTMLElement;
   private activeElementBeforeDisable?: HTMLElement;
   private readonly components: Component<unknown>[];
-  private removeElementHoverEventListeners = () => {};
+  private removeElementHoverEventListeners = () => { };
   private readonly eventSubscriber: NodeEventSubscriber;
 
   constructor(public readonly container: Container<unknown>, ...components: Component<unknown>[]) {
@@ -86,10 +86,10 @@ export class NavigationGroup {
 
   protected defaultActionHandler(action: Action): void {
     switch (action) {
-      case(Action.SELECT):
+      case (Action.SELECT):
         this.activeElement.click();
         break;
-      case(Action.BACK):
+      case (Action.BACK):
         this.container.hide();
         break;
     }
