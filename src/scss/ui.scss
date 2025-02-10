@@ -79,6 +79,62 @@ $color-focus: #ff0000;
   background-image: url("../../assets/skin-modern/images/next.svg");
 }
 
+.#{$prefix}-ui-metadata {
+  margin-right: 3em;
+
+  .#{$prefix}-hidden {
+    display: none !important;
+  }
+
+  > .#{$prefix}-container-wrapper {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .#{$prefix}-ui-metadata-subtitle {
+    font-size: 0.65em;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  .#{$prefix}-ui-metadata-title {
+    font-size: 0.9em;
+    line-height: 1.4em;
+    margin: 0;
+    max-height: 2.8em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .#{$prefix}-ui-metadata-description {
+    font-size: 0.5em;
+    line-height: 1.6em;
+    margin: 0;
+    max-height: 3.2em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .#{$prefix}-ui-metadata-avatar {
+    height: 3em;
+    margin-right: 0.75em;
+  }
+
+  .#{$prefix}-ui-metadata-right {
+    > .#{$prefix}-container-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+    }
+  }
+}
+
 .#{$prefix}-ui-uicontainer {
   font-family: var(
     --font-body,
@@ -159,21 +215,37 @@ $color-focus: #ff0000;
 
 .#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-web,
 .#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-mobile {
-  .#{$prefix}-ui-titlebar {
-    padding-left: 2.75em;
+  .#{$prefix}-ui-metadata {
+    margin-left: 0.5em;
+    padding-bottom: 0.75em;
 
-    .#{$prefix}-label-metadata-title {
+    .#{$prefix}-ui-metadata-subtitle {
+      font-size: 0.9em;
+      line-height: 1.1;
+      margin-bottom: 0.25em;
+    }
+
+    .#{$prefix}-ui-metadata-title {
       font-size: 1.2em;
-      line-height: 1.5em;
+      line-height: 1.2em;
+      max-height: 2.4em;
+      margin-bottom: 0.25em;
+    }
+
+    .#{$prefix}-ui-metadata-description {
+      font-size: 0.75em;
+      line-height: 1.3em;
+      max-height: 3.2em;
+    }
+
+    .#{$prefix}-ui-metadata-avatar {
+      height: 3.5em;
+      margin-right: 0.75em;
     }
   }
 
   .#{$prefix}-ui-backbutton {
     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZWZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jaGV2cm9uLWxlZnQiPjxwYXRoIGQ9Im0xNSAxOC02LTYgNi02Ii8+PC9zdmc+");
-    position: absolute;
-    left: 0.75em;
-    font-size: 1.2em;
-    padding: 0;
   }
 
   .#{$prefix}-ui-controlbar {
@@ -182,11 +254,11 @@ $color-focus: #ff0000;
     .#{$prefix}-controlbar-primary {
       left: 0;
       right: 0;
-      top: calc(50% - 3em);
+      top: 0;
       position: absolute;
-      height: 6em;
-      padding: 0 1em;
-      box-sizing: border-box;
+      // height: 6em;
+      padding: 1em;
+      // box-sizing: border-box;
 
       .#{$prefix}-container-wrapper {
         height: 100%;
@@ -194,11 +266,7 @@ $color-focus: #ff0000;
         gap: 0.5em;
         justify-content: center;
         align-items: center;
-        font-size: 2em;
-      }
-
-      .#{$prefix}-ui-playbacktogglebutton {
-        font-size: 1.5em;
+        // font-size: 2em;
       }
     }
 
@@ -214,6 +282,7 @@ $color-focus: #ff0000;
 
   .#{$prefix}-controlbar-bottom {
     .#{$prefix}-container-wrapper {
+      font-size: 1.35em;
       gap: 0.25em;
     }
   }
@@ -259,7 +328,7 @@ $color-focus: #ff0000;
       padding: 0em 1em;
       box-sizing: border-box;
 
-      .#{$prefix}-container-wrapper {
+      > .#{$prefix}-container-wrapper {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
@@ -283,7 +352,7 @@ $color-focus: #ff0000;
 
     .#{$prefix}-ui-subtitlesettingstogglebutton,
     .#{$prefix}-ui-audiotracksettingstogglebutton {
-      font-size: 1em;
+      font-size: 0.75em;
     }
   }
 
@@ -328,7 +397,7 @@ $color-focus: #ff0000;
     margin-bottom: 0.2em;
 
     .#{$prefix}-ui-playbacktimelabel {
-      font-size: 0.8em;
+      font-size: 0.7em;
     }
   }
 

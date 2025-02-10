@@ -222,6 +222,102 @@ class LoadNextButton extends Button<ButtonConfig> {
   }
 }
 
+class Metadata extends Container<ContainerConfig> {
+  constructor(config: ContainerConfig) {
+    super(config);
+
+    this.avatar = new Component({
+      cssClasses: ['ui-metadata-avatar'],
+      tag: 'img',
+      hidden: true,
+    });
+
+    this.title = new Component({
+      cssClasses: ['ui-metadata-title'],
+      hidden: true,
+    });
+
+    this.subtitle = new Component({
+      cssClasses: ['ui-metadata-subtitle'],
+      hidden: true,
+    });
+
+    this.description = new Component({
+      cssClasses: ['ui-metadata-description'],
+      hidden: true,
+    });
+
+    this.config = this.mergeConfig(
+      config,
+      {
+        cssClasses: ["ui-metadata"],
+        components: [
+          new Container({
+            components: [this.avatar],
+            cssClasses: ['ui-metadata-left'],
+          }),
+          new Container({
+            components: [this.subtitle, this.title, this.description],
+            cssClasses: ['ui-metadata-right'],
+          }),
+        ],
+      },
+      this.config,
+    );
+  }
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+
+    window?.document?.addEventListener('player:metadata', this.handleMetadata);
+
+    onCustomMessage('metadata', (data) => {
+      try {
+        const metadata = JSON.parse(data);
+        this.handleMetadata({ detail: metadata });
+      } catch (e) {
+
+      }
+    });
+  }
+
+  release(): void {
+    window?.document?.removeEventListener('player:metadata', this.handleMetadata);
+  }
+
+  private handleMetadata = (e): void => {
+    const metadata = e.detail;
+
+    if (metadata?.avatar?.url) {
+      this.avatar.getDomElement().attr('src', metadata.avatar.url);
+      this.avatar.show();
+    } else {
+      this.avatar.hide();
+    }
+
+    if (metadata?.title) {
+      this.title.getDomElement().html(metadata.title);
+      this.title.show();
+    } else {
+      this.title.hide();
+    }
+
+    if (metadata?.subtitle) {
+      this.subtitle.getDomElement().html(metadata.subtitle);
+      this.subtitle.show();
+    } else {
+      this.subtitle.hide();
+    }
+
+    if (metadata?.description) {
+      this.description.getDomElement().html(metadata.description);
+      this.description.show();
+    } else {
+      this.description.hide();
+    }
+  }
+}
+
 export function defaultScreen() {
   let subtitleListBox = new SubtitleListBox();
   let subtitleSettingsPanel = new SettingsPanel({
@@ -247,18 +343,32 @@ export function defaultScreen() {
     hidden: true,
   });
 
+  const metadata = new Metadata({});
+
   let controlBar = new ControlBar({
     components: [
       new Container({
         components: [
-          new QuickSeekButton({ seekSeconds: -15 }),
-          new PlaybackToggleButton(),
-          new QuickSeekButton({ seekSeconds: 15 }),
+          new BackButton(),
+          new Spacer(),
+          new PictureInPictureToggleButton(),
+          new AirPlayToggleButton(),
+          new CastToggleButton(),
+          new SettingsToggleButton({
+            settingsPanel: audioTrackSettingsPanel,
+            cssClass: 'ui-audiotracksettingstogglebutton',
+          }),
+          new SettingsToggleButton({
+            settingsPanel: subtitleSettingsPanel,
+            cssClass: 'ui-subtitlesettingstogglebutton',
+          }),
+          new FullscreenToggleButton(),
         ],
         cssClasses: ['controlbar-primary'],
       }),
       new Container({
         components: [
+          metadata,
           new Container({
             components: [
               new PlaybackTimeLabel({
@@ -275,22 +385,13 @@ export function defaultScreen() {
           }),
           new Container({
             components: [
+              new PlaybackToggleButton(),
+              new QuickSeekButton({ seekSeconds: -15 }),
+              new QuickSeekButton({ seekSeconds: 15 }),
               new VolumeToggleButton(),
+              new Spacer(),
               new LoadPreviousButton(),
               new LoadNextButton(),
-              new Spacer(),
-              new PictureInPictureToggleButton(),
-              new AirPlayToggleButton(),
-              new CastToggleButton(),
-              new SettingsToggleButton({
-                settingsPanel: audioTrackSettingsPanel,
-                cssClass: 'ui-audiotracksettingstogglebutton',
-              }),
-              new SettingsToggleButton({
-                settingsPanel: subtitleSettingsPanel,
-                cssClass: 'ui-subtitlesettingstogglebutton',
-              }),
-              new FullscreenToggleButton(),
             ],
             cssClasses: ['controlbar-bottom'],
           }),
@@ -309,13 +410,6 @@ export function defaultScreen() {
       new BufferingOverlay(),
       new CastStatusOverlay(),
       controlBar,
-      new TitleBar({
-        components: [
-          new BackButton(),
-          new MetadataLabel({ content: MetadataLabelContent.Title }),
-          new MetadataLabel({ content: MetadataLabelContent.Description }),
-        ], cssClass: 'ui-titlebar',
-      }),
       new ErrorMessageOverlay(),
     ],
     cssClasses: ['ui-skin-web', 'ui-skin-mobile'],
@@ -413,11 +507,7 @@ export function tvScreen() {
     ], cssClasses: ['ui-controls-settings']
   })
 
-  const metadataControls = new Container({
-    components: [
-      new MetadataLabel({ content: MetadataLabelContent.Title }),
-    ], cssClasses: ['ui-controls-metadata']
-  })
+  const metadata = new Metadata({});
 
   const uiContainer = new UIContainer({
     components: [
@@ -431,7 +521,7 @@ export function tvScreen() {
         components: [
           new Container({
             components: [
-              metadataControls,
+              metadata,
               settingsControls,
             ],
             cssClasses: ['controlbar-secondary'],
