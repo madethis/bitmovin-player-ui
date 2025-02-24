@@ -121,6 +121,9 @@ $color-focus: #ff0000;
 
   .#{$prefix}-ui-metadata-avatar {
     height: 3em;
+    width: 3em;
+    object-fit: contain;
+    object-position: bottom;
     margin-right: 0.75em;
   }
 
@@ -131,6 +134,7 @@ $color-focus: #ff0000;
       align-items: flex-start;
       justify-content: flex-start;
       text-align: left;
+      gap: 0.25em;
     }
   }
 }
@@ -209,12 +213,19 @@ $color-focus: #ff0000;
     right: 0;
     bottom: 0;
     position: absolute;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.75);
   }
 }
 
 .#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-web,
 .#{$prefix}-ui-uicontainer.#{$prefix}-ui-skin-mobile {
+  .#{$prefix}-ui-controlbar .#{$prefix}-ui-settings-panel {
+    top: 3.5em;
+    bottom: auto;
+    right: 0.5em;
+    z-index: 1;
+  }
+
   .#{$prefix}-ui-metadata {
     margin-left: 0.5em;
     padding-bottom: 0.75em;
@@ -222,14 +233,12 @@ $color-focus: #ff0000;
     .#{$prefix}-ui-metadata-subtitle {
       font-size: 0.9em;
       line-height: 1.1;
-      margin-bottom: 0.25em;
     }
 
     .#{$prefix}-ui-metadata-title {
       font-size: 1.2em;
       line-height: 1.2em;
       max-height: 2.4em;
-      margin-bottom: 0.25em;
     }
 
     .#{$prefix}-ui-metadata-description {
@@ -240,6 +249,7 @@ $color-focus: #ff0000;
 
     .#{$prefix}-ui-metadata-avatar {
       height: 3.5em;
+      width: 3.5em;
       margin-right: 0.75em;
     }
   }

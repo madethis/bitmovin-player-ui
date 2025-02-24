@@ -272,12 +272,7 @@ class Metadata extends Container<ContainerConfig> {
     window?.document?.addEventListener('player:metadata', this.handleMetadata);
 
     onCustomMessage('metadata', (data) => {
-      try {
-        const metadata = JSON.parse(data);
-        this.handleMetadata({ detail: metadata });
-      } catch (e) {
-
-      }
+      this.handleMetadata({ detail: data });
     });
   }
 
@@ -286,7 +281,23 @@ class Metadata extends Container<ContainerConfig> {
   }
 
   private handleMetadata = (e): void => {
-    const metadata = e.detail;
+    const data = e.detail;
+
+    let metadata = data;
+
+    if (typeof metadata === 'string') {
+      try {
+        const parsed = JSON.parse(atob(data));
+        metadata = parsed;
+      } catch (e) {
+        try {
+          const parsed = JSON.parse(data);
+          metadata = parsed;
+        } catch (e) {
+          metadata = {};
+        }
+      }
+    }
 
     if (metadata?.avatar?.url) {
       this.avatar.getDomElement().attr('src', metadata.avatar.url);
